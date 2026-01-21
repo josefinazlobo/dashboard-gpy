@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard de Proyectos - GPY</title>
+
+<style>
+body {
+    font-family: Segoe UI, Arial, sans-serif;
+    margin: 0;
+    background: #f4f6f9;
+}
+
+header {
+    background: #244aa5;
+    color: #fff;
+    padding: 15px 25px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.container {
+    padding: 20px;
+}
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.kpi {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.1);
+}
+
+.kpi h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.kpi p {
+    margin: 5px 0 0;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.projects {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.project-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.1);
+    border-left: 6px solid #ccc;
+}
+
+.note {
+    margin-top: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.note.INFO {
+    background: #e8f1ff;
+    color: #244aa5;
+}
+
+.note.ALERTA {
+    background: #fff4cc;
+    color: #a67c00;
+}
+
+.note.URGENTE {
+    background: #ffe5e5;
+    color: #c0392b;
+}
+
+
+.green { border-color: #2ecc71; }
+.yellow { border-color: #f1c40f; }
+.red { border-color: #e74c3c; }
+
+.project-card h4 {
+    margin: 0;
+}
+
+.project-card small {
+    color: #666;
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 900px;
+    border-radius: 10px;
+    padding: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.close {
+    float: right;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background: #f0f0f0;
+}
+.flag {
+    color: #e74c3c;
+    font-weight: bold;
+    margin-left: 6px;
+}
+
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+
+.badge.green { background: #2ecc71; }
+.badge.yellow { background: #f1c40f; }
+.badge.red { background: #e74c3c; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>📊 Dashboard de Proyectos - GPY</h1>
+</header>
+
+<div class="container">
+
+    <!-- KPIs -->
+    <div class="kpis">
+        <div class="kpi">
+            <h3>% Captura de Actividades</h3>
+            <p id="kpiCapturas">--%</p>
+        </div>
+        <div class="kpi">
+            <h3>% Plan de trabajo actualizado</h3>
+            <p id="kpiInformes">--%</p>
+        </div>
+        <div class="kpi">
+            <h3>Avance Promedio</h3>
+            <p id="kpiAvance">--%</p>
+        </div>
+        <div class="kpi">
+            <h3>Proyectos en Riesgo</h3>
+            <p id="kpiRiesgo">--</p>
+        </div>
+    </div>
+
+    <!-- PROYECTOS -->
+    <div class="projects" id="projectList"></div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal()">✖</span>
+        <div id="detalleProyecto"></div>
+    </div>
+</div>
+
+<script>
+const proyectos = [
+    {
+        codigo: "012_2025_ULTRA_VIATICOS",
+        nombre: "IMPLEMENTACIÓN MÓDULO DE VIÁTICOS",
+        cliente: "ULTRAORGANICS",
+        objetivo: "Diseñar, adecuar e implementar un sistema de Solicitud y Comprobación de Viáticos en ULTRAORGANICS, alineado a las prácticas de empresas privadas y en cumplimiento con la legislación fiscal vigente en México.",
+        fechaFin: "05/02/2026",
+        avance: 35,
+        informes: 100,
+        presupuestoPlaneado: 124894.81,
+        presupuestoEjercido: 90717.30,
+        equipo: [
+            { nombre: "Claudia B. López Gutiérrez", rol: "RAPE", capturas: 100 },
+            { nombre: "Alfer Romero Villa", rol: "PR", capturas: 100 },
+            { nombre: "Diego Cruz Sepúlveda", rol: "PR", capturas: 0 }
+        ],
+        nota: {
+                tipo: "INFORMATIVO",
+                texto: "Cerrar las actividades que ya finalizaron y actualizar % si ya terminaron, captura de actividades incompleto, revisar con el equipo"
+            }
+    },
+    {
+        codigo: "007_2025_DALINDE_JL",
+        nombre: "IMPLEMENTACIÓN JORNADA LABORAL Y PRENOMINA",
+        cliente: "DALINDE",
+        objetivo: "Fortalecer y optimizar la gestión de los procesos laborales y de nómina en DALINDE, mediante la implementación integral de los módulos JORNADA LABORAL, RCA, Pre-nómina, Calculadora de ISR y Fases de autorización de nómina en SIAL CH V2.",
+        fechaFin: "31/12/2025",
+        avance: 46,
+        informes: 0,
+        presupuestoPlaneado: 199320,
+        presupuestoEjercido: 23971,
+        equipo: [
+            { nombre: "Valter BARAJAS MAGAÑA", rol: "RAPE", capturas: 0 },
+            { nombre: "Alfonso CERVANTES LÓPEZ", rol: "RGNC", capturas: 100 },
+            { nombre: "Julián QUIROZ CHACÓN", rol: "RGNC", capturas: 100 }
+        ],
+        nota: {
+                tipo: "URGENTE",
+                texto: "Actualizar plan de trabajo en SIAPROY y enviar informes de avance al cliente y GPY"
+            }
+    },
+    {
+        codigo: "002_2025_AYTO_SERMED",
+        nombre: "IMPLEMENTACIÓN SERVICIO MÉDICO",
+        cliente: "MUNICIPIO ZAMORA",
+        objetivo: "Fortalecer la gestión de prestaciones, se implementará el módulo Servicio Médico, el cual permitirá un control integral de los servicios médicos proporcionados al personal y sus dependientes económicos",
+        fechaFin: "31/12/2025",
+        avance: 42,
+        informes: 0,
+        presupuestoPlaneado: 44832.47,
+        presupuestoEjercido: 42495.95,
+        equipo: [
+            { nombre: "Román SALCEDO RAMOS", rol: "RAPE", capturas: 0 },
+            { nombre: "Salvador ANTONIO AYALA (Temporal)", rol: "PR", capturas: 100 }
+        ],
+        nota: {
+                tipo: "URGENTE",
+                texto: "Registro de actividades incompleto, no están registradas en el plan todas las actividades que se han agregado por petición del cliente, por lo tanto los datos del plan de trabajo no son reales"
+            }
+    },
+    {
+        codigo: "003_2025_HHR_VENFI",
+        nombre: "IMPLEMENTACIÓN SIAL VENFI EN LAVADOS HHR",
+        cliente: "LAVADOS HHR",
+        objetivo: "Implementación integral del sistema SIAL CH (Capital Humano) en su módulo básico de nómina, y de los módulos de Facturación y Contabilidad del sistema SIAL VENFI (Ventas y Finanzas). Esta implementación está orientada a mejorar el control, eficiencia y cumplimiento normativo en los procesos de gestión de capital humano y administración financiera de LAVANDERÍA HHR.",
+        fechaFin: "30/01/2026",
+        avance: 77,
+        informes: 0,
+        presupuestoPlaneado: 29301,
+        presupuestoEjercido: 1695,
+        equipo: [
+            { nombre: "Claudia B LÓPEZ GUTIÉRREZ", rol: "RAPE", capturas: 80 }
+        ]
+    },
+    {
+        codigo: "009_2025_NAFIN",
+        nombre: "DESARROLLOS NAFIN",
+        cliente: "NAFIN",
+        objetivo: "Desarrollos especiales NAFIN",
+        fechaFin: "30/01/2026",
+        avance: 34.62,
+        informes: 50,
+        presupuestoPlaneado: 213830.66,
+        presupuestoEjercido: 90655.2,
+        equipo: [
+            { nombre: "Flor E SÁNCHEZ AGUILAR", rol: "RAPE", capturas: 80 }
+        ],
+        nota: {
+                tipo: "URGENTE",
+                texto: "EN PAUSA POR DEFINICIÓN DE CLIENTE"
+            }
+    },
+    {
+        codigo: "014_2025_CAMPOTERRA",
+        nombre: "IMPLEMENTACION SIAL CH - MODULO BASICO NOMINA Y DESTAJO",
+        cliente: "CAMPOTERRA",
+        objetivo: "Implantar SIAH CH (Capital Humano) en su módulo básico de nómina y el módulo de Destajo para estandarizar procesos de RH y pago, asegurar cumplimiento fiscal y disponer de información en línea para la toma de decisiones, con operación en la nube, seguridad integral y soporte continuo.",
+        fechaFin: "31/01/2026",
+        avance:54,
+        informes: 50,
+        presupuestoPlaneado: 4090,
+        presupuestoEjercido: 51319,
+        equipo: [
+            { nombre: "Mauricio ALCALÁ AYALA", rol: "RAPE", capturas: 80 }
+        ],
+        nota: {
+                tipo: "URGENTE",
+                texto: "Plan de trabajo incompleto"
+            }
+    },
+     {
+        codigo: "015_2025_INMUZA_REIMPLEMENTACION",
+        nombre: "REIMPLEMENTACION SIAL CH INMUZA",
+        cliente: "INDUSTRIA MUEBLERA DE ZAMORA",
+        objetivo: "Restablecer la operación de nómina en SIAL CH V2, con parametrización alineada a políticas de INMUZA, capacitación a usuarios y estabilización posterior a salida a producción.",
+        fechaFin: "31/12/2025",
+        avance:72,
+        informes: 0,
+        presupuestoPlaneado: 11737.23,
+        presupuestoEjercido: 3691,
+        equipo: [
+            { nombre: "Flor E SÁNCHEZ AGUILAR", rol: "RAPE", capturas: 100 }
+        ],
+        nota: {
+                tipo: "informativo",
+                texto: "."
+            }
+    },
+    {
+        codigo: "008_2024_LOBO_SIAL_MOVIL",
+        nombre: "DESARROLLO SIAL MOVIL SEGUNDA FASE",
+        cliente: "LOBO",
+        objetivo: "Desarrollo de funciones de SERVICIOS AL PERSONAL para móvil",
+        fechaFin: "31/12/2025",
+        avance:57,
+        informes: 0,
+        presupuestoPlaneado: 50129,
+        presupuestoEjercido: 71845,
+        equipo: [
+            { nombre: "Josefina ZAMBRANO RAMÍREZ", rol: "RAPE", capturas: 100 },
+            { nombre: "Mariana PEÑA FLORES", rol: "PR", capturas: 100 },
+            { nombre: "David S FLORES BALTAZAR", rol: "PR", capturas: 100 },
+            { nombre: "Alfonso CERVANTES ALONSO", rol: "PR", capturas: 100 }
+        ],
+        nota: {
+                tipo: "Informativo",
+                texto: "."
+            }
+    }
+];
+
+/* ===== FUNCIONES PMO ===== */
+
+function calcularCapturasProyecto(equipo) {
+    const total = equipo.reduce((s, m) => s + (m.capturas || 0), 0);
+    return Math.round(total / equipo.length);
+}
+
+function desviacionPresupuesto(p) {
+    return Math.round(
+        ((p.presupuestoEjercido - p.presupuestoPlaneado) / p.presupuestoPlaneado) * 100
+    );
+}
+
+function semaforoPresupuesto(p) {
+    const d = desviacionPresupuesto(p);
+    if (d > 10) return "red";
+    if (d > 0) return "yellow";
+    return "green";
+}
+
+function semaforoProyecto(p) {
+    let rojos = 0;
+    if (calcularCapturasProyecto(p.equipo) < 80) rojos++;
+    if (p.avance < 70) rojos++;
+    if (semaforoPresupuesto(p) === "red") rojos++;
+
+    if (rojos >= 2) return "red";
+    if (rojos === 1) return "yellow";
+    return "green";
+}
+
+/* ===== DASHBOARD ===== */
+
+function cargarDashboard() {
+    const list = document.getElementById("projectList");
+    let tCap = 0, tInf = 0, tAv = 0, riesgo = 0;
+
+    proyectos.forEach(p => {
+        const capt = calcularCapturasProyecto(p.equipo);
+        tCap += capt;
+        tInf += p.informes;
+        tAv += p.avance;
+        if (semaforoProyecto(p) === "red") riesgo++;
+
+        const card = document.createElement("div");
+        card.className = `project-card ${semaforoProyecto(p)}`;
+        card.onclick = () => verProyecto(p);
+
+        card.innerHTML = `
+                <h4>
+                    ${p.nombre}
+                    ${proyectoVencido(p) ? '<span class="flag">🚩</span>' : ''}
+                </h4>
+                <small>${p.codigo}</small><br>
+                Cliente: <b>${p.cliente}</b><br>
+                Capturas: ${capt}%<br>
+                Avance: ${p.avance}%<br>
+                Presupuesto:
+                <span class="badge ${semaforoPresupuesto(p)}">
+                    ${desviacionPresupuesto(p)}%
+                </span>
+                ${p.nota ? `
+                        <div class="note ${p.nota.tipo}">
+                            ${p.nota.tipo === 'URGENTE' ? '🚨 ' : ''}
+                            ${p.nota.texto}
+                        </div>
+                ` : ''}
+
+            `;
+
+        list.appendChild(card);
+    });
+
+    document.getElementById("kpiCapturas").innerText = Math.round(tCap / proyectos.length) + "%";
+    document.getElementById("kpiInformes").innerText = Math.round(tInf / proyectos.length) + "%";
+    document.getElementById("kpiAvance").innerText = Math.round(tAv / proyectos.length) + "%";
+    document.getElementById("kpiRiesgo").innerText = riesgo;
+}
+
+function verProyecto(p) {
+    document.getElementById("detalleProyecto").innerHTML = `
+        <h2>${p.nombre}</h2>
+        <p><b>Cliente:</b> ${p.cliente}</p>
+        <p><b>Objetivo:</b> ${p.objetivo}</p>
+        <p><b>Fecha fin:</b> ${p.fechaFin}</p>
+
+        <h3>Presupuesto</h3>
+        <p>Planeado: ${formatoMXN(p.presupuestoPlaneado)}</p>
+        <p>Ejercido: ${formatoMXN(p.presupuestoEjercido)}</p>
+        <p>Desviación:
+            <span class="badge ${semaforoPresupuesto(p)}">
+                ${desviacionPresupuesto(p)}%
+            </span>
+        </p>
+        ${p.nota ? `
+                <h3>Nota para RAPE</h3>
+                <div class="note ${p.nota.tipo}">
+                    ${p.nota.texto}
+                </div>
+            ` : ''}
+
+        <h3>Equipo</h3>
+        <table>
+            <tr><th>Nombre</th><th>Rol</th><th>% Capturas</th></tr>
+            ${p.equipo.map(e => `
+                <tr>
+                    <td>${e.nombre}</td>
+                    <td>${e.rol}</td>
+                    <td>${e.capturas}%</td>
+                </tr>
+            `).join("")}
+        </table>
+    `;
+    document.getElementById("modal").style.display = "flex";
+}
+
+function formatoMXN(valor) {
+    return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+    }).format(valor);
+}
+
+function proyectoVencido(proyecto) {
+    const hoy = new Date();
+    const [dia, mes, anio] = proyecto.fechaFin.split("/");
+    const fechaFin = new Date(anio, mes - 1, dia);
+
+    return hoy > fechaFin && proyecto.avance < 100;
+}
+
+
+function cerrarModal() {
+    document.getElementById("modal").style.display = "none";
+}
+
+cargarDashboard();
+</script>
+
+</body>
+</html>
